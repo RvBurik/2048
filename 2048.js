@@ -1,12 +1,17 @@
 canvasWidth = 400;
 canvasHeight = canvasWidth;
+RIGHT = 39;
+LEFT = 37;
+UP = 38;
+DOWN = 40;
+
 
 tiles = [];
 
-function setup() {
-    createCanvas(canvasWidth, canvasHeight);
-    this.initializeGame();
-    this.keyPressed();
+  function setup() {
+      createCanvas(canvasWidth, canvasHeight);
+      this.initializeGame();
+      this.keyPressed();
   }
   
   function draw() {
@@ -29,10 +34,10 @@ function setup() {
   }
 
   function keyPressed(){
-    if(keyCode === 39){ this.moveTilesToDirection(); this.setNewGameTiles(1);}
-    else if (keyCode === 37) console.log("LEFT");
-    else if (keyCode === 38) console.log("UP");
-    else if(keyCode === 40) console.log("DOWN");
+    if(keyCode === RIGHT){ }
+    else if (keyCode === LEFT) console.log("LEFT");
+    else if (keyCode === UP) { this.moveTilesToDirection();}
+    else if(keyCode === DOWN) console.log("DOWN");
   }
 
   function generateTiles(){
@@ -63,25 +68,41 @@ function setup() {
 
   function moveTilesToDirection(direction){
     for(let i = 0; i < tiles.length; i++){
-      this.merging(tiles[i])
+      this.merging(tiles[i]);
     }
+    this.setNewGameTiles(1);
   }
 
   function merging(row){
     debugger;
-    for(let i = row.length-1 ; i >= 1 ; i--){
-      if(isAbleToMerge(row[i], row[i-1])){
-        this.merge([row[i], row[i-1]]);
+
+    moveAllTilesOverAfterSwipe(row);
+
+    for(let i = 0; i < row.length - 1; i++){
+      let hoofdRow = row[i];
+      let secondRow =  row[i+1];
+      if(secondRow === undefined){ debugger;}
+      if(isAbleToMerge(hoofdRow, secondRow)){
+        merge([hoofdRow, secondRow])
       }
     }
-    this.resetForNextRound(row);
+    moveAllTilesOverAfterSwipe(row);
+    resetForNextRound(row);
+  }
+
+  function getIndexOfFirstNotZeroTile(row){
+    for(let i = 0; i < row.length; i++){
+      if(row[i].value !== 0){
+        return i;
+      }
+    }
+    return null;
   }
 
   function merge(tiles){
-    if(tiles[1].value !== 0){ tiles[1].mergedInRound = true};
-
-    tiles[1].value = tiles[1].value + tiles[0].value;
-    tiles[0].value = 0;
+    if(tiles[0].value !== 0){ tiles[0].mergedInRound = true}
+    tiles[0].value += tiles[1].value;
+    tiles[1].value = 0;
   }
 
   function resetForNextRound(row){
@@ -96,6 +117,35 @@ function setup() {
     return (a.value===b.value) && (!a.mergedInRound && !b.mergedInRound) ? true : false;
   }
 
+  function moveAllTilesOverAfterSwipe(row){
+    let indexOfFirstNotZeroTile = getIndexOfFirstNotZeroTile(row);
+    if(indexOfFirstNotZeroTile === null){ return; }
+
+    let tilesToRemove = getZeroTiles(row);
+
+    tilesToRemove.forEach(tile => { 
+      let index = row.findIndex(element => element === tile);
+      row.splice(index, 1);
+      row.push(tile);
+    });
+    debugger;
+    row.forEach((tile, index) => tile.j = index);
+  }
+
+
+
+  function getAllTilesFromRow(row, biggerThanZero){
+    return row.filter(function(element){ return biggerThanZero ? element.value > 0 : element.value === 0});
+  }
+
+  function getZeroTiles(row){
+    let arr = [];
+    row.forEach(tile => {
+      if(tile.value === 0) arr.push(tile);
+    });
+    return arr;
+  };
+
   function getRandomZeroTile(){
     let r1 = floor(random(0, this.tiles.length));
     let r2 = floor(random(0, this.tiles[r1].length));
@@ -104,7 +154,7 @@ function setup() {
   }
 
   class Tile {
-      value = 0;
+      value;
       i;
       j;
       mergedInRound = false;
@@ -112,5 +162,6 @@ function setup() {
       constructor(i, j){
         this.i = i;
         this.j = j;
+        this.value = 0;
       }
   }
