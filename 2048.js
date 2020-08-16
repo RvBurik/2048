@@ -34,10 +34,25 @@ tiles = [];
   }
 
   function keyPressed(){
-    if(keyCode === RIGHT){ }
-    else if (keyCode === LEFT) console.log("LEFT");
-    else if (keyCode === UP) { this.moveTilesToDirection();}
-    else if(keyCode === DOWN) console.log("DOWN");
+    console.log(keyCode)
+    if(keyCode === 39){ 
+      right();
+      setNewGameTiles(1);
+    }
+    else if (keyCode === 37) {
+      left();     
+      setNewGameTiles(1);
+    }
+    else if (keyCode === UP) { 
+      up();
+      setNewGameTiles(1);
+    }
+    else if(keyCode === DOWN) {
+      down();
+      setNewGameTiles(1);
+    };
+
+
   }
 
   function generateTiles(){
@@ -66,11 +81,61 @@ tiles = [];
     }
   }
 
-  function moveTilesToDirection(direction){
+  function up(){
     for(let i = 0; i < tiles.length; i++){
       this.merging(tiles[i]);
     }
-    this.setNewGameTiles(1);
+  }
+
+  function down(){
+    //turn all rows around
+    for(i = 0; i < tiles.length; i++){
+      tiles[i].reverse();
+      merging(tiles[i]);
+      tiles[i].reverse();
+    }
+  }
+
+  function left(){   
+    tiles = spinRight();
+    for(let i = 0; i < tiles.length; i++){
+      merging(tiles[i]);
+    }
+    tiles = spinLeft();
+  }
+
+  function right(){
+    tiles = spinLeft();
+    for(let i = 0; i < tiles.length; i++){
+      merging(tiles[i]);
+    }
+    tiles = spinRight();
+  }
+
+
+  function spinRight(){
+    let spinnedTiles = [];
+    for(let i = tiles.length - 1; i >= 0; i--){
+      let row = [];
+      for(let j = 0; j < tiles.length; j++){
+        row.push(tiles[j][i]);
+      }
+      spinnedTiles.push(row);
+    }
+    return spinnedTiles;
+  }
+
+  function spinLeft(){
+    debugger;
+    let spinnedTiles = [];
+    for(let i=0; i < tiles.length; i++){
+      let row = [];
+      for(let j=tiles.length-1; j >= 0; j--){
+        row.push(tiles[j][i]);
+      }
+      spinnedTiles.push(row);
+    }
+    return spinnedTiles;
   }
 
   function merging(row){
