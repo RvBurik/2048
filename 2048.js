@@ -5,7 +5,7 @@ LEFT = 37;
 UP = 38;
 DOWN = 40;
 
-
+preSwipeTiles = [];
 tiles = [];
 
   function setup() {
@@ -15,15 +15,17 @@ tiles = [];
   }
   
   function draw() {
-    background(220);  
     drawTiles();
   }
 
   function drawTiles(){
     for(let i = 0; i < tiles.length; i++){
       for(let j = 0; j < tiles[i].length; j++){
+        fill('rgb(' + tiles[i][j].getColor()[1] + ')');
         rect(i * 100, j * 100, canvasWidth / 4, canvasHeight / 4); 
         if(tiles[i][j].value !== 0){
+          let colors = tiles[i][j].getColor();
+          fill('rgb(' + colors[2] + ')');
           text(tiles[i][j].value, i * 100 + 50, j * 100 + 50);
           textAlign(CENTER, CENTER);
           textSize(64);
@@ -34,25 +36,40 @@ tiles = [];
   }
 
   function keyPressed(){
-    console.log(keyCode)
     if(keyCode === 39){ 
       right();
-      setNewGameTiles(1);
+      setNewGameTiles(1, false);
     }
     else if (keyCode === 37) {
       left();     
-      setNewGameTiles(1);
+      setNewGameTiles(1), false;
     }
     else if (keyCode === UP) { 
       up();
-      setNewGameTiles(1);
+      setNewGameTiles(1, false);
     }
     else if(keyCode === DOWN) {
       down();
-      setNewGameTiles(1);
+      setNewGameTiles(1, false);
     };
+  }
 
 
+function copyTiles(){
+  preSwipeTiles = JSON.parse(JSON.stringify(tiles))
+}
+
+
+  function tilesDidNotMove(){
+    if(preSwipeTiles.length == 0) return false;
+    for(let i=0; i<tiles.length;i++){
+      for(let j=0; j< tiles.length; j++){
+        if(tiles[i][j].value !== preSwipeTiles[i][j].value){
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   function generateTiles(){
@@ -68,16 +85,21 @@ tiles = [];
 
   function initializeGame(){
     this.generateTiles();
-    this.setNewGameTiles(2);
+    this.setNewGameTiles(2, true);
   }
 
   function getRandomTwoOrFour(){
     return random() > 0.5 ? 2 : 4;
   }
 
-  function setNewGameTiles(n){
-    for(let i = 0; i < n; i++){
-      this.getRandomZeroTile().value = getRandomTwoOrFour();
+  function setNewGameTiles(n, init){
+    if(!tilesDidNotMove()){
+      for(let i = 0; i < n; i++){
+        this.getRandomZeroTile().value = getRandomTwoOrFour();
+      }
+    }
+    if(!init){
+      copyTiles();
     }
   }
 
@@ -88,7 +110,6 @@ tiles = [];
   }
 
   function down(){
-    //turn all rows around
     for(i = 0; i < tiles.length; i++){
       tiles[i].reverse();
       merging(tiles[i]);
@@ -112,7 +133,6 @@ tiles = [];
     tiles = spinRight();
   }
 
-
   function spinRight(){
     let spinnedTiles = [];
     for(let i = tiles.length - 1; i >= 0; i--){
@@ -126,7 +146,6 @@ tiles = [];
   }
 
   function spinLeft(){
-    debugger;
     let spinnedTiles = [];
     for(let i=0; i < tiles.length; i++){
       let row = [];
@@ -139,14 +158,12 @@ tiles = [];
   }
 
   function merging(row){
-    debugger;
 
     moveAllTilesOverAfterSwipe(row);
 
     for(let i = 0; i < row.length - 1; i++){
       let hoofdRow = row[i];
       let secondRow =  row[i+1];
-      if(secondRow === undefined){ debugger;}
       if(isAbleToMerge(hoofdRow, secondRow)){
         merge([hoofdRow, secondRow])
       }
@@ -177,7 +194,6 @@ tiles = [];
   }
 
   function isAbleToMerge(a, b){
-    debugger;
     if(b.value===0) return true;
     return (a.value===b.value) && (!a.mergedInRound && !b.mergedInRound) ? true : false;
   }
@@ -193,11 +209,8 @@ tiles = [];
       row.splice(index, 1);
       row.push(tile);
     });
-    debugger;
     row.forEach((tile, index) => tile.j = index);
   }
-
-
 
   function getAllTilesFromRow(row, biggerThanZero){
     return row.filter(function(element){ return biggerThanZero ? element.value > 0 : element.value === 0});
@@ -224,9 +237,33 @@ tiles = [];
       j;
       mergedInRound = false;
 
+      colors = [[0, '199, 186, 174', '199, 186, 174'],
+                [2, '231, 221, 211', '114, 106, 98'], 
+                [4, '230, 217, 195', '114, 106, 98'],
+                [8, '233, 171, 117', '240, 238, 235'],
+                [16, '236, 143, 96', '240, 238, 235'],
+                [32, '236, 118, 93', '240, 238, 235'],
+                [64, '224, 82, 54', '240, 238, 235'],
+                [128, '236, 211, 104', '240, 238, 235'],
+                [256, '234, 203, 74', '240, 238, 235']  
+              ];
+
+
       constructor(i, j){
         this.i = i;
         this.j = j;
         this.value = 0;
+      }
+
+      getColor() {
+        for(let i = 0; i < this.colors.length; i++){
+          if(this.colors[i][0] === this.value){
+              return this.colors[i];
+          }
+       } 
+      }
+
+      getString(){
+        return "value:" + this.value + ", i:"+this.i+", j:"+this.j;
       }
   }
